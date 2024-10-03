@@ -1,5 +1,8 @@
 pipeline {
     agent any
+    environment {
+        npm = "/usr/bin/npm"
+    }
     stages {
         stage('Build') {
             steps {
