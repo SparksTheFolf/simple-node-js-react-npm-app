@@ -1,24 +1,29 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+            image 'node:lts-buster-slim'
+            args '-p 3000:3000'
+        }
+    }
+    environment {
+        CI = 'true'
+    }
     stages {
-        stage('Advanced Build') { 
+        stage('Build') {
             steps {
-                sh '''
-                    #!/bin/bash
-                    echo "Starting advanced build process..."
-                    
-                    if [ -f package.json ]; then
-                        npm install
-                    else
-                        echo "package.json not found!"
-                        exit 1
-                    fi
-                    
-                    for dir in src/*/ ; do
-                        echo "Building $dir"
-                        npm run build --prefix "$dir"
-                    done
-                '''
+                sh 'npm install'
+            }
+        }
+        stage('Test') {
+            steps {
+                sh './jenkins/scripts/test.sh'
+            }
+        }
+        stage('Deliver') {
+            steps {
+                sh './jenkins/scripts/deliver.sh'
+                input message: 'Finished using the web site? (Click "Proceed" to continue)'
+                sh './jenkins/scripts/kill.sh'
             }
         }
     }
